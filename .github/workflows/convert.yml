@@ -6,6 +6,7 @@ jobs:
   convert_via_pandoc:
     runs-on: ubuntu-18.04
     steps:
+      - run: mkdir opt
       - uses: docker://pandoc/latex:2.9
         with:
-          args: "--standalone --output=out.md main.tex" ##print message
+          args: "--standalone --output=out.md ../main.tex" ##print message
