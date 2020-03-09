@@ -6,6 +6,6 @@ jobs:
   convert_via_pandoc:
     runs-on: ubuntu-18.04
     steps:
-      - uses: docker://pandoc/latex
+      - uses: docker://pandoc/latex:2.9
         with:
-          args: "-s InstallArch.tex -o InstallArch.pdf README.md" # gets appended to pandoc command
+          args: "--standalone --output=README.md main.tex"
