@@ -8,4 +8,4 @@ jobs:
     steps:
       - uses: docker://pandoc/latex:2.9
         with:
-          args: "--help"
+          args: "--help" ##print message
