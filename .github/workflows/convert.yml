@@ -6,6 +6,7 @@ jobs:
   convert_via_pandoc:
     runs-on: ubuntu-18.04
     steps:
+      - uses: simoneruffini/ArchInstall@master
       - uses: docker://pandoc/latex:2.9
         with:
           args: "--standalone --output=README.md main.tex"
