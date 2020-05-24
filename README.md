@@ -21,7 +21,7 @@ Create a bootable device with RUFUS with dd method () or by using dd.
 
 -   \*nix:
 
-``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+``` {.bash fontsize="\\footnotesize" bgcolor="ArchCode" frame="single"}
 sudo dd bs=4M if=<path/to/input>.iso of=/dev/sd<?> conv=fdatasync  status=progress
 ```
 
@@ -366,7 +366,7 @@ Add matching entries to
 
 ``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
 vim /etc/hosts
-------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 127.0.0.1   localhost
 ::1         localhost
 127.0.1.1   DellXPS.localdomain DellXPS
@@ -443,7 +443,7 @@ Create configuration file to add an entry for Arch Linux:
 
 ``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
 vim /boot/loader/entries/arch.conf
-------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 title Arch Linux
 linux /vmlinuz-linux
 initrd /initramfs-linux.img
@@ -468,6 +468,26 @@ emergency shell.
 If at reboot the bootloader is not shown you can either press `space` at
 boot or change the `boot/loader/loader.conf` file adding `timeout 3`.
 
+### Add pacamn Hook to update the boot manager
+
+Whenever there is a new version of systemd-boot, the boot manager can be
+optionally reinstalled by the user. The update can be automatically
+triggered using pacman hooks.
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+sudo vim /etc/pacman.d/hooks/systemd-boot.hook
+----------------------------------------------------------------------------------
+[Trigger]
+Type = Package
+Operation = Upgrade
+Target = systemd
+
+[Action]
+Description = Updating systemd-boot
+When = PostTransaction
+Exec = /usr/bin/bootctl update
+```
+
 Add Intel microcode
 -------------------
 
@@ -481,7 +501,7 @@ Update the arch systemd-boot loader file to load microcode:
 
 ``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
 vim /boot/loader/entries/arch.conf
-------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 ...
 initrd /intel-ucode.img
 initrd /initramfs-linux.img
@@ -529,7 +549,7 @@ Uncomment:
 
 ``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
 visudo
-------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 #%wheel ALL=(ALL) ALL
 ```
 
@@ -538,7 +558,7 @@ password by adding:
 
 ``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
 visudo
-------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 Defaults rootpw
 ```
 
@@ -549,8 +569,8 @@ Create `lvm2`, `udev` hooks and enable `dm_mod` module in
 [mkinitcpio](https://wiki.archlinux.org/index.php/Mkinitcpio):
 
 ``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
-vim /minted/mkinitcpio.conf
-------------------------------------------------------------------------------------------
+vim /etc/mkinitcpio.conf
+----------------------------------------------------------------------------------
 HOOKS="base udev ... lvm2 filesystems"
 ...
 MODULES="dm_mod..."
@@ -568,15 +588,152 @@ with:
 mkminitcpio -p linux
 ```
 
+Instatiante Xdg-Users dir
+-------------------------
+
+[Xdg-users-dir](https://wiki.archlinux.org/index.php/XDG_user_directories)
+s a tool to help manage \"well known\" user directories like the desktop
+folder and the music folder. It also handles localization (i.e.
+translation) of the filenames.
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+pacman -Sy xdg-users-dir
+#then run the package
+xdg-user-dirs-update
+```
+
+The user service `xdg-user-dirs-update.service` will also be installed
+and enabled by default.
+
 Install additional Packages
 ---------------------------
 
 ``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
-pacman -S bash-completion vi
+pacman -S bash-completion vi neovim
 ```
 
-check this things
+Install the Window Manager
+==========================
 
--   add systemd pacman hook to update systemd
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+sudo pacman sway
+```
 
--   [xdg-user-dirs-update.service](https://wiki.archlinux.org/index.php/General_recommendations#User_directories)
+If video drivers are requested use `Mesa` since nvidia is not supported.
+To run sway just type it in terminal
+
+Apply scaling
+-------------
+
+Get information about the current display and copy the display name.
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+swaymsg -t get_outputs
+----------------------------------------------------------------------------------
+Output eDP-1 'Sharp Corporation 0x148D 0x00000000' (focused)
+  Current mode: 3840x2160 @ 59.997002 Hz
+  Position: 0,0
+  Scale factor: 2.000000
+  Scale filter: nearest
+  Subpixel hinting: unknown
+  Transform: normal
+  Workspace: 1
+  Max render time: off
+  Available modes:
+    3840x2160 @ 59.997002 Hz
+...
+```
+
+Here the display name is `eDP-1`, so now this value will be used in the
+config file of sway. If there is no config file/`.config` folder run:
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+mkdir ~/.config
+mkdir ~/.config/sway
+cp /etc/sway/config ~/.config/sway/config
+```
+
+Then add the following line to add scaling
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+.config/sway/config
+----------------------------------------------------------------------------------
+...
+output eDP-1 scale 2
+...
+```
+
+From now on `.config` aka dotfiles will be available on github so just
+copy the entire folder and keep it under version controll
+
+Install other usefull packages
+==============================
+
+Install yay
+-----------
+
+[yay](https://github.com/Jguer/yay) is an AUR helper. Before beeing able
+to download yay we need to add another repository to pacman that allows
+us to download it:
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+sudo vim /etc/pacman.conf
+----------------------------------------------------------------------------------
+...
+[archlinuxcn]
+Server = http://repo.archlinuxcn.org/$arch
+## or install archlinuxcn-mirrorlist-git and use the mirrorlist
+#Include = /etc/pacman.d/archlinuxcn-mirrorlist
+...
+```
+
+Now we can update pacman repos and install a keyring that will let us
+use them. After that we can simply install
+[yay](https://github.com/Jguer/yay) via pacman.
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+pacman -Syu
+sudo pacman -S archlinuxcn-keyring
+sudo pacman -S yay
+```
+
+Install a menu to launch applications from sway
+-----------------------------------------------
+
+The normal choiche is to use
+[dmenu](https://wiki.archlinux.org/index.php/Dmenu) but it uses
+X-Wayland and so I preferred to install
+[bemenu](https://github.com/Cloudef/bemenu) that uses natively wayland.
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+yay bemenu bemeneu-wlroots
+```
+
+After that we need to assign bemenu as the default menu to sway and pipe
+its output to sway so that it can execute the selected application.
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+vim .config/sway/config
+----------------------------------------------------------------------------------
+...
+set $menu bemenu-run -b -l 10 --scrollbar=always -H 25 -m all | xargs 
+swaymsg exec --
+...
+```
+
+The default key-binding to execute this line is `[super]+D` you can
+change it by searching for `$menu`. The paramenters passed to
+`bemenu-run` all visible through `man bemenu`.
+
+Install X-Wayalnd for Xorg app support
+--------------------------------------
+
+[X-Wayland](https://wayland.freedesktop.org/xserver.html) lets run X.org
+apps in emulated mod thorugh wayland compositor.
+
+``` {.bash fontsize="\\small" bgcolor="ArchCode" frame="single"}
+yay xorg-server-xwayland
+```
+
+TODO
+====

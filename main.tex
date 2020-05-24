@@ -1,4 +1,4 @@
-\documentclass[11pt,A4]{article}
+\documentclass[12pt,A4]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 
@@ -22,6 +22,9 @@
 \usepackage{geometry}
 \geometry{a4paper,portrait,margin=2cm}
 
+%\usepackage{fontspec}
+%\setmonofont{IBM Plex Mono}%[SizeFeatures={Size=9}]
+
 \title{Arch install for DELL XPS 9570}
 \author{Simone Ruffini }
 \date{March 2020}
@@ -40,38 +43,50 @@ Create a bootable device with RUFUS with dd method () or by using dd.
     \item *nix:
 \end{itemize}
 
-\linecode {sudo dd bs=4M if=<path/to/input>.iso of=/dev/sd<?> conv=fdatasync  status=progress}
-Boot in arch linux. Remember to disable Secure Boot and RAID intel otherwise nvme devices wont be shown.
+\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+sudo dd bs=4M if=<path/to/input>.iso of=/dev/sd<?> conv=fdatasync  status=progress
+\end{minted}
+
+\noindent Boot in arch linux. Remember to disable Secure Boot and RAID intel otherwise nvme devices wont be shown.
 \subsection{Verify the boot mode}
 If \href{https://wiki.archlinux.org/index.php/UEFI}{UEFI} mode is enabled on an \href{https://wiki.archlinux.org/index.php/UEFI}{UEFI} motherboard, Archiso will \href{https://wiki.archlinux.org/index.php/Boot}{boot} Arch Linux accordingly via \href{https://wiki.archlinux.org/index.php/Systemd-boot}{systemd-boot}. To verify this, list the efivars directory:
-\linecode{ls /sys/firmware/efi/efivars}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+ls /sys/firmware/efi/efivars
+\end{minted}
 
-\vspace{-5mm}
 \subsection{Connect to the internet}
 To set up a network connection, go through the following steps:
 \newline
 Ensure your \href{https://wiki.archlinux.org/index.php/Network_interface}{network} interface is listed and enabled, for example with \href{https://jlk.fjfi.cvut.cz/arch/manpages/man/ip-link.8}{ip-link(8)}:
-\linecode{ip link}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+ip link
+\end{minted}
 \href{https://wiki.archlinux.org/index.php/Wireless_network_configurationc}{Connect to the wireless LAN}.
 Try with wifi-menu of \href{https://wiki.archlinux.org/index.php/Netctl}{netctl} package:
-\linecode{wifi-menu}
-\vspace{-5mm}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+wifi-menu
+\end{minted}
 \begin{tcolorbox}[colback=ArchGreen,sharp corners,boxrule=0.2mm]
 If somethig goes wrong you can modify the network profile with \\ \texttt{vim /etc/netctl/<profile\_name>}
 \end{tcolorbox}
 The connection may be verified with \href{https://en.wikipedia.org/wiki/ping}{ping}:
-\linecode{ping archlinux.org}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+ping archlinux.org
+\end{minted}
 
 \subsection{Update the system clock}
 Use \href{https://jlk.fjfi.cvut.cz/arch/manpages/man/timedatectl.1}{timedatectl(1)} to ensure the system clock is accurate:
 
-\linecode{timedatectl set-ntp true}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+timedatectl set-ntp true
+\end{minted}
 
-\vspace{-5mm}
 \subsection{Partition the disks}
 When recognized by the live system, disks are assigned to a \href{https://wiki.archlinux.org/index.php/Device_file#Block_devices}{block device} such as \texttt{/dev/sda }or \texttt{/dev/nvme0n1}. To identify these devices, use \href{https://wiki.archlinux.org/index.php/Lsblk}{lsblk} or \href{https://wiki.archlinux.org/index.php/Fdisk}{fdisk}.
 
-\linecode{lsblk}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+lsblk
+\end{minted}
 Results ending in \texttt{rom}, \texttt{loop} or \texttt{airoot} may be ignored.
 The following \href{https://wiki.archlinux.org/index.php/Partition}{partitions} are \textbf{required} for a chosen device:
 \begin{itemize}
@@ -80,7 +95,9 @@ The following \href{https://wiki.archlinux.org/index.php/Partition}{partitions} 
 \end{itemize}
 Using \href{https://wiki.archlinux.org/index.php/LVM}{LVM} and with
 a graphical interface to partiton disk use \href{https://jlk.fjfi.cvut.cz/arch/manpages/man/cfdisk.8}{cfdisk}.
-\linecode{cfdisk /dev/<device>}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+cfdisk /dev/<device>
+\end{minted}
 Inside cfdisk:
 \begin{enumerate}
     \item Make a GPT partition table if not already exisiting
@@ -92,29 +109,31 @@ Inside cfdisk:
 Visit \href{https://wiki.archlinux.org/index.php/LVM_(Italiano)}{LVM ita}. \textbf{In this section the storage device will be sda}!
 \begin{enumerate}
     \item Create physical volume and check with \texttt{pvdisplay}
-    \vspace{-2mm}\linecode{pvcreate /dev/sda2} \vspace{-10mm}
+    \begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+pvcreate /dev/sda2 
+    \end{minted}
     \item Create Volume Group and check with \texttt{vgdisplay}
-    \vspace{-2mm}\linecode{vgcreate VolGrp0 /dev/sda2}\vspace{-10mm}
+    \begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+vgcreate VolGrp0 /dev/sda2
+    \end{minted}
     \item Create Logical Volumes and check with \texttt{lvldisplay} 
-    \vspace{-2mm}
-    \begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+    \begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 lvcreate -L 20G VolGrp0 -n root
 lvcreate -C y -L 8G VolGrp0 -n swap
 lvcreate -l 100%FREE VolGrp0 -n home
     \end{minted}
 \end{enumerate}
 
-\vspace{-5mm}
 \subsection{Format the partitions}
 Once the partitions have been created, each must be formatted with an appropriate \href{https://wiki.archlinux.org/index.php/File_system}{file system}.
 
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 mkfs.fat -F 32 /dev/<boot_partition> 
 mkfs.f2fs -l root /dev/VolGrp00/root
 mkfs.f2fs -l home /dev/VolGrp0/home
 \end{minted}
 Initialize the swap
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 mkswap /dev/VolGrp0/swap
 swapon /dev/VolGrp0/swap
 \end{minted}
@@ -125,7 +144,7 @@ The mount point of the ESB partition in Systemd-boot needs to contain kernel and
 
 \subsection{Mount the file systems}
 Non existen directories must be created first
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 mount /dev/VolGrp0/root /mnt
 mkdir /mnt/home
 mkdir /mnt/boot
@@ -136,9 +155,11 @@ mount /dev/<boot_partition> /mnt/boot
 \subsection{Select mirrors}
 Packages to be installed must be downloaded from \href{https://wiki.archlinux.org/index.php/Mirrors}{mirror servers}, which are defined in \\ \texttt{/etc/pacman.d/mirrorlist}. The higher a mirror is placed in the list, the more priority it is given when downloading a package. This file will later be copied to the new system by pacstrap, so it is worth getting right.\\
 Make a backup of the mirror list:
-\linecode{cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
+\end{minted}
 Install \href{https://git.archlinux.org/pacman-contrib.git/about/}{pacman-contrib} package containing the \texttt{rankmirrors} script.
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 pacman -Sy
 pacman -S pacman-contrib
 \end{minted}
@@ -146,11 +167,12 @@ pacman -S pacman-contrib
 If pacman is not working then probably all servers in the mirror list are commented. Uncomment one by modyfing \texttt{mirrorlist} and after the install recomment it.
 \end{tcolorbox}
 \noindent To be shure that all servers are availble for ranking run tht command to uncomment all the lines in \texttt{mirrorlist}:
-\mint[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{html}|sed -i 's/^#Server/Server/' /etc/pacman.d/mirrorlist.backup|
+\mint[fontsize=\small,bgcolor=ArchCode,frame=single]{html}|sed -i 's/^#Server/Server/' /etc/pacman.d/mirrorlist.backup|
 Now we will run \texttt{mirrors}, it can take a wile and no output is made in the process so just wait and monitor on another tty with \texttt{top}. The script will rank the first 6 best mirrors delting the other ones.
-\vspace{-1mm}
-\linecode{rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist}
-If you want add the other servers for precaution.
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
+\end{minted}
+Copy the remaining mirrors in the file.
 
 \subsection{Install essential packages}
 Use the \href{https://projects.archlinux.org/arch-install-scripts.git/tree/pacstrap.in}{pacstrap} script to install the \href{https://www.archlinux.org/packages/?name=base}{base} package, Linux \href{https://wiki.archlinux.org/index.php/Kernel}{kernel} and firmware for common hardware.
@@ -165,73 +187,76 @@ The \href{https://www.archlinux.org/packages/?name=base}{base} package does not 
 \end{itemize}
     
 \noindent To \href{https://wiki.archlinux.org/index.php/Install}{install} other packages or package groups, append the names to the pacstrap command above (space separated) or use \href{https://wiki.archlinux.org/index.php/Pacman}{pacman} while \href{https://wiki.archlinux.org/index.php/Installation_guide#Chroot}{chrooted into the new system}. For comparison, packages available in the live system can be found in \href{https://projects.archlinux.org/archiso.git/tree/configs/releng/packages.x86_64}{packages.x86\_64}.
-\linecode{pacstrap /mnt base base-devel linux linux-firmware vim man-db man-pages lvm2}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+pacstrap /mnt base base-devel linux linux-firmware vim man-db man-pages lvm2
+\end{minted}
 
-\vspace{-5mm}
 \section{Configure the system}
 
 \subsection{Generate Fstab}
-\vspace{-3mm}
-\linecode{genfstab -U -p /mnt >> /mnt/etc/fstab}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+genfstab -U -p /mnt >> /mnt/etc/fstab
+\end{minted}
 Check if there is a entry for every partition and the one for swap too with \texttt{vim}.
 \subsection{Chroot}
 Now we are going to \href{https://wiki.archlinux.org/index.php/Change_root}{chroot} into our newly installed system and begin to configure its booting, time, and language:
-\linecode{arch-chroot /mnt}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+arch-chroot /mnt
+\end{minted}
 
-\vspace{-7mm}
 \subsection{Time zone}
 Set the \href{https://wiki.archlinux.org/index.php/Time_zone}{time zone}:
-\linecode{ ln -sf /usr/share/zoneinfo/Europe/Rome /etc/localtime}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+ ln -sf /usr/share/zoneinfo/Europe/Rome /etc/localtime
+\end{minted}
 Run \href{https://jlk.fjfi.cvut.cz/arch/manpages/man/hwclock.8}{hwclock(8)} to generate \texttt{/etc/adjtime}:
-\linecode{hwclock --systohc --utc}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+hwclock --systohc --utc
+\end{minted}
 
-\vspace{-7mm}
 \subsection{Localization}
 Uncomment \texttt{en\_US.UTF-8 UTF-8} and other needed \href{https://wiki.archlinux.org/index.php/Locale}{locale} in \texttt{/etc/locale.gen}, and generate them with:
-\linecode{locale-gen}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+locale-gen
+\end{minted}
 Create the \href{https://jlk.fjfi.cvut.cz/arch/manpages/man/locale.conf.5}{locale.conf(5)} file, set the \texttt{LANG} \href{https://wiki.archlinux.org/index.php/Variable}{variable} as your language:
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 echo LANG=en_US.UTF-8 > /etc/locale.conf
 export LANG=en_US.UTF-8
 \end{minted}
 
-\vspace{-2mm}
 \subsection{Network configuration}
 \subsubsection{Hostname}
 Create the \href{https://wiki.archlinux.org/index.php/Hostname}{hostname} file:
-\linecode{echo DellXPS-Simone > /etc/hostname}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+echo DellXPS > /etc/hostname
+\end{minted}
 Add matching entries to \href{https://jlk.fjfi.cvut.cz/arch/manpages/man/hosts.5}{hosts(5)}:
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 vim /etc/hosts
-----------------------------------------------------------------------------------------------------
-127.0.0.1	localhost
-::1		    localhost
-127.0.1.1	DellXPS-Simone.localdomain	DellXPS-Simone
+----------------------------------------------------------------------------------
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   DellXPS.localdomain	DellXPS
 \end{minted}
 \subsubsection{Network Manager}
-Install network tools and mangaer:
-\linecode{pacman -S NetworkManager}
-Find any network devices starting with \texttt{enp/wlp} with:
-\linecode{ip link}
-Disable \texttt{DHCPCD} and \texttt{netctl} on any network device since\href{https://wiki.archlinux.org/index.php/NetworkManager}{networkmanager} will replace both.\\
-\vspace{-3mm}
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
-systemctl disable dhcpcd@<eth_device>.service
-systemctl disable netctl-auto@<wirl_device>.service
+Install \href{https://wiki.archlinux.org/index.php/NetworkManager}{NetworkManager} as our network manager. NetworkMangaer has and internal dhcp service, so if DHCPCD is installed remove berforehand. \\
+Install \href{https://wiki.archlinux.org/index.php/NetworkManager}{networkmanager} and enable it as service:
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+pacman -S NetworkManager
+systemctl enable NetworkManager.service
 \end{minted}
-Enable \href{https://wiki.archlinux.org/index.php/NetworkManager}{networkmanager}
-\linecode{systemctl enable NetworkManager.service}
 
-\vspace{-7mm}
 \subsection{Enable trim support}
 For safe, weekly \href{https://wiki.archlinux.org/index.php/Solid_state_drive#TRIM}{TRIM} service on \href{https://wiki.archlinux.org/index.php/Solid_state_drive}{SSDs} and all other devices that enable \href{https://wiki.archlinux.org/index.php/Solid_state_drive#TRIM}{TRIM} support:
-\linecode{systemctl enable fstrim.timer}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+systemctl enable fstrim.timer
+\end{minted}
 
-\vspace{-7mm}
 \subsection{Enabling multilib and Arch AUR}
 If you are running a 64bit system then you need to enable the \href{https://wiki.archlinux.org/index.php/Official_repositories#multilib}{multilib repository}.\\
 Uncomment in \texttt{/etc/pacman.conf}: 
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 [multilib]
 Include = /etc/pacman.d/mirrorlist
 \end{minted}
@@ -240,31 +265,53 @@ Update the sistem with pacman.
 \subsection{Boot loader}
 Install \href{https://wiki.archlinux.org/index.php/Systemd-boot}{systemd-boot} \href{https://wiki.archlinux.org/index.php/Boot_loader}{bootloader}
 Recheck if the EFI variables are mounted
-\linecode{mount -t efivarfs efivarfs /sys/firmware/efi/efivars}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+mount -t efivarfs efivarfs /sys/firmware/efi/efivars
+\end{minted}
 With the ESP mounted to \texttt{/boot}, use \href{https://jlk.fjfi.cvut.cz/arch/manpages/man/bootctl.1}{bootctl(1)} to install systemd-boot into the EFI system partition by running:
-\linecode{bootctl --path=/boot install}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+bootctl --path=/boot install
+\end{minted}
 This will copy the systemd-boot boot loader to the EFI partition, it will then set systemd-boot as the default EFI application (default boot entry) loaded by the EFI Boot Manager.\\
 Create configuration file to add an entry for Arch Linux:
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 vim /boot/loader/entries/arch.conf
-----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 title Arch Linux
 linux /vmlinuz-linux
 initrd /initramfs-linux.img
+options root=/dev/mapper/VolGrp0-root rw
 \end{minted}
-Next add the \texttt{root} partition to the loader entry, since ours is \texttt{/dev/VolGrp0/root}:
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
-echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/VolGrp0/root) rw" >>
-/boot/loader/entries/arch.conf
-\end{minted}
+The \href{https://wiki.archlinux.org/index.php/Systemd-boot#Adding_loaders}{\texttt{option}} tag  is the command line options to pass to the EFI program or \href{https://wiki.archlinux.org/index.php/Kernel_parameters}{kernel parameters}. The parameter \href{https://wiki.archlinux.org/index.php/Kernel_parameters#Parameter_list}{\texttt{root}} tells ther kernel where the root file system partition is to be found. \texttt{root} accepts \href{https://wiki.archlinux.org/index.php/Persistent_block_device_naming}{persistent block device naming} but in our case since we are using LVM, all device blocks are persitent.
+\begin{tcolorbox}[boxrule=0.2mm]
+If \texttt{root} is not set properly the kernel will load but not finding the root partition it will create a temporary one and put you in an emergency shell.
+\end{tcolorbox}
+If at reboot the bootloader is not shown you can either press \texttt{space} at boot or change the \texttt{boot/loader/loader.conf} file adding \texttt{timeout 3}.
 
+\subsubsection{Add pacamn Hook to update the boot manager}
+Whenever there is a new version of systemd-boot, the boot manager can be optionally reinstalled by the user. The update can be automatically triggered using pacman hooks.\newline
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+sudo vim /etc/pacman.d/hooks/systemd-boot.hook
+----------------------------------------------------------------------------------
+[Trigger]
+Type = Package
+Operation = Upgrade
+Target = systemd
+
+[Action]
+Description = Updating systemd-boot
+When = PostTransaction
+Exec = /usr/bin/bootctl update
+\end{minted}
 \subsection{Add Intel microcode}
 Install \href{https://wiki.archlinux.org/index.php/Microcode}{microcode}:
-\linecode{pacman -S intel-ucode}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+pacman -S intel-ucode
+\end{minted}
 Update the arch systemd-boot loader file to load microcode:
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
 vim /boot/loader/entries/arch.conf
-----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 ...
 initrd /intel-ucode.img
 initrd /initramfs-linux.img
@@ -273,37 +320,195 @@ initrd /initramfs-linux.img
 
 \subsection{Root password} 
 Set the root \href{https://wiki.archlinux.org/index.php/Password}{password}:
-\linecode{passwd}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+passwd
+\end{minted}
 
-\vspace{-7mm}
 \subsection{User setup} 
 Add a default \href{https://wiki.archlinux.org/index.php/Users_and_groups}{user} with:
-\linecode{useradd -m -g users -G wheel,storage,power -s /bin/bash simone}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+useradd -m -g users -G wheel,storage,power -s /bin/bash simone
+\end{minted}
 set a \href{https://wiki.archlinux.org/index.php/Password}{password} for that user:
-\linecode{passwd simone} 
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+passwd simone 
+\end{minted}
 
-\vspace{-7mm}
 \subsection{Setting up sudoers}
 Edit the sudoers file to give this user \href{https://wiki.archlinux.org/index.php/Sudo#Configuration}{sudo} privileges. 
 The configuration file for sudo is in \texttt{/etc/sudoers}. It should always be edited with the \href{https://jlk.fjfi.cvut.cz/arch/manpages/man/visudo.8}{visudo(8)} command. \texttt{visudo} locks the \texttt{sudoers} file, saves edits to a temporary file, and checks that file's grammar before copying it to \texttt{/etc/sudoers}.\\
 Uncomment:
-\linecode{wheel ALL=(ALL) ALL}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+visudo
+----------------------------------------------------------------------------------
+#%wheel ALL=(ALL) ALL
+\end{minted}
 \noindent Make sudoers require typing the root password instead of their own password by adding:
-\linecode{Defaults rootpw}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+visudo
+----------------------------------------------------------------------------------
+Defaults rootpw
+\end{minted}
 
 \subsection{LVM checks}
-Check that \texttt{lvm1}, \texttt{udev} hooks and \texttt{dm\_mod} module are enabled in \href{https://wiki.archlinux.org/index.php/Mkinitcpio}{mkinitcpio}:
+Create \texttt{lvm2}, \texttt{udev} hooks and enable \texttt{dm\_mod} module in \href{https://wiki.archlinux.org/index.php/Mkinitcpio}{mkinitcpio}: 
 
-\begin{minted}[fontsize=\footnotesize,bgcolor=ArchCode,frame=single]{bash}
-vim /minted/mkinitcpio.conf
-----------------------------------------------------------------------------------------------------
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+vim /etc/mkinitcpio.conf
+----------------------------------------------------------------------------------
 HOOKS="base udev ... lvm2 filesystems"
 ...
 MODULES="dm_mod..."
 \end{minted}
-if changes to the file are made, \texttt{initramfs} has to be \href{https://wiki.archlinux.org/index.php/Mkinitcpio#Installation}{rebuilt}.\\
-Kernel option \texttt{dolvm} could be passed.
+This is needed otherwise the kernel is unable to find the lvm partitions. Pay attention to the order in HOOKS, this is ther order in which the kernel loads the modules so any wrong changes could dtop the loading of the kernel.\\
+If changes to the file are made, \texttt{initramfs} has to be \href{https://wiki.archlinux.org/index.php/Mkinitcpio#Installation}{rebuilt} with:
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+mkminitcpio -p linux
+\end{minted}
+
+\subsection{Instatiante Xdg-Users dir}
+\href{https://wiki.archlinux.org/index.php/XDG_user_directories}{Xdg-users-dir} s a tool to help manage "well known" user directories like the desktop folder and the music folder. It also handles localization (i.e. translation) of the filenames.
+
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+pacman -Sy xdg-users-dir
+#then run the package
+xdg-user-dirs-update
+\end{minted}
+The user service \texttt{xdg-user-dirs-update.service} will also be installed and enabled by default.
 \subsection{Install additional Packages}
-\linecode{pacman -S bash-completion }
-add systemd pacman hook to update systemd
+
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+pacman -S bash-completion vi neovim
+\end{minted}
+
+
+\section{Install the Window Manager}
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+sudo pacman sway
+\end{minted}
+If video drivers are requested use \texttt{Mesa} since nvidia is not supported.
+To run sway just type it in terminal
+\subsection{Apply scaling}
+Get information about the current display and copy the display name.
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+swaymsg -t get_outputs
+----------------------------------------------------------------------------------
+Output eDP-1 'Sharp Corporation 0x148D 0x00000000' (focused)
+  Current mode: 3840x2160 @ 59.997002 Hz
+  Position: 0,0
+  Scale factor: 2.000000
+  Scale filter: nearest
+  Subpixel hinting: unknown
+  Transform: normal
+  Workspace: 1
+  Max render time: off
+  Available modes:
+    3840x2160 @ 59.997002 Hz
+...
+\end{minted}
+Here the display name is \texttt{eDP-1}, so now this value will be used in the config file of sway. If there is no config file/\texttt{.config} folder run:
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+mkdir ~/.config
+mkdir ~/.config/sway
+cp /etc/sway/config ~/.config/sway/config
+\end{minted}
+Then add the following line to add scaling
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+.config/sway/config
+----------------------------------------------------------------------------------
+...
+output eDP-1 scale 2
+...
+\end{minted}
+\begin{tcolorbox}[colback=ArchGreen,sharp corners,boxrule=0.2mm]
+From now on \texttt{.config} aka dotfiles will be available on github so just copy the entire folder and keep it under version controll
+\end{tcolorbox}
+
+\section{Install other usefull packages}
+\subsection{Install yay}
+\href{https://github.com/Jguer/yay}{yay} is an AUR helper.
+ Before beeing able to download yay we need to add another repository to pacman that allows us to download it:
+
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+sudo vim /etc/pacman.conf
+----------------------------------------------------------------------------------
+...
+[archlinuxcn]
+Server = http://repo.archlinuxcn.org/$arch
+## or install archlinuxcn-mirrorlist-git and use the mirrorlist
+#Include = /etc/pacman.d/archlinuxcn-mirrorlist
+...
+\end{minted}
+Now we can update pacman repos and install a keyring that will let us use them. After that we can simply install \href{https://github.com/Jguer/yay}{yay} via pacman.
+
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+pacman -Syu
+sudo pacman -S archlinuxcn-keyring
+sudo pacman -S yay
+\end{minted}
+
+\subsection{Install a menu to launch applications from sway}
+The normal choiche is to use \href{https://wiki.archlinux.org/index.php/Dmenu}{dmenu} but it uses X-Wayland and so I preferred to install \href{https://github.com/Cloudef/bemenu}{bemenu} that uses natively wayland.
+
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+yay bemenu bemeneu-wlroots
+\end{minted}
+After that we need to assign bemenu as the default menu to sway and pipe its output to sway so that it can execute the selected application. 
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+vim .config/sway/config
+----------------------------------------------------------------------------------
+...
+set $menu bemenu-run -b -l 10 --scrollbar=always -H 25 -m all | xargs 
+swaymsg exec --
+...
+\end{minted}
+The default key-binding to execute this line is \texttt{[super]+D} you can change it by searching for \texttt{\$menu}.
+The paramenters passed to \texttt{bemenu-run} all visible through \texttt{man bemenu}.
+
+\subsection{Install X-Wayalnd for Xorg app support}
+\href{https://wayland.freedesktop.org/xserver.html}{X-Wayland} lets run X.org apps in emulated mod thorugh wayland compositor.
+
+\begin{minted}[fontsize=\small,bgcolor=ArchCode,frame=single]{bash}
+yay xorg-server-xwayland
+\end{minted}
+
+\section{TODO}
+%%install kanshi and wdisplays
+%%to use kanshi go to https://github.com/emersion/kanshi
+%%
+%%//install zsh
+%%yay zsh
+%%//add pacman hook
+%%vim /etc/pacman.d/hook/zsh.hook
+%%------------------------------------
+%%
+%%[Trigger]
+%%Operation = Install
+%%Operation = Upgrade
+%%Operation = Remove
+%%Type = Path
+%%Target = usr/bin/*
+%%[Action]
+%%Depends = zsh
+%%When = PostTransaction
+%%Exec = /usr/bin/install -Dm644 /dev/null /var/cache/zsh/pacman
+%%
+%%------------------------------------
+%%//font config
+%%yay fontconfig
+%%
+%%//font
+%%install IBM Plex
+%%//emoji and japanese and exrta font support
+%%install noto-fonts-*
+%%//install iosevka
+%%yay ttf-iosevka ttf-iosevka-term-ss08 ttf-iosevka-ss08
+%%
+%%//run
+%%fc-cache -v
+%%
+%%//install unrar
+%%
+%%bluetooth
+%%https://wiki.archlinux.org/index.php/Bluetooth
 \end{document}
